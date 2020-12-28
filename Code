@@ -1,0 +1,227 @@
+/*Phone book*/
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+ 
+ struct PhB 
+ {
+ 	char name[20];
+ 	char phNo[12];
+  	char email[25];
+    struct PhB *left, *right;
+  };
+
+ struct PhB *root = NULL;
+ 
+ struct PhB * createNode(char *name,char *phNo, char *email) 
+ {
+     struct PhB *newnode;
+     newnode = (struct PhB *)malloc(sizeof(struct PhB));
+     strcpy(newnode->name, name);
+     strcpy(newnode->phNo, phNo);
+     strcpy(newnode->email, email);
+     newnode->left = newnode->right = NULL;
+     return newnode;
+ }
+
+ void dot()
+ {
+     printf("\n");
+     for (int i=80;i>0;i--)
+         printf("*");
+     printf("\n");
+ }
+
+ void insert(char *name,char *phNo, char *email)
+ {
+     struct PhB *parent = NULL, *current = NULL, *newnode = NULL;
+     int res = 0;
+     if (!root)
+	 {
+         root = createNode(name, phNo, email);
+         return;
+     }
+     for (current = root; current !=NULL;current = (res > 0) ? current->right : current->left)
+	 {
+         res = strcasecmp(name, current->name);
+         if (res == 0) 
+		 {
+             printf("Duplicate entry!!\n");
+             return;
+         }
+         parent = current;
+     }
+     newnode = createNode(name, phNo, email);
+     res > 0 ? (parent->right = newnode) : (parent->left = newnode);
+     return;
+ } 
+
+ void deleteNode(char *str) 
+ {
+     struct PhB *parent = NULL, *current = NULL, *temp = NULL;
+     int flag = 0, res = 0;
+     if (!root) 
+	 {
+         printf("Phone Book is empty!!\n");
+         return;
+     }
+     current = root;
+     while (1) 
+     {
+     	res = strcasecmp(current->name, str);
+         if (res == 0)
+             break;
+         flag = res;
+         parent = current;
+         current = (res > 0) ? current->left : current->right;
+         if (current == NULL)
+             return;
+     }
+     /* deleting leaf node */
+     if (current->right == NULL)
+ 	 {
+         if (current == root && current->left == NULL) 
+     	 {
+             free(current);
+             root = NULL;
+             return;
+         } else if (current == root) 
+		 {
+             root = current->left;
+             free (current);
+             return;
+         }
+        
+		 flag > 0 ? (parent->left = current->left) :(parent->right = current->left);
+     } 
+	 else 
+	 {
+       	 /* delete node with single child */
+         temp = current->right;
+         if (!temp->left) 
+		 {
+             temp->left = current->left;
+             if (current == root) 
+		 	 {
+                 root = temp;
+                 free(current);
+                 return;
+             }
+           
+		     flag > 0 ? (parent->left = temp) :(parent->right = temp);
+         } else 
+		 {
+             /* delete node with two children */
+             struct PhB *successor = NULL;
+             while (1) 
+			 {
+                 successor = temp->left;
+                 if (!successor->left)
+                     break;
+                 temp = successor;
+             } 
+             temp->left = successor->right;
+             successor->left = current->left;
+             successor->right = current->right;
+             if (current == root) 
+			 {
+                 root = successor;
+                 free(current);
+                 return;
+             }
+            
+			 (flag > 0) ? (parent->left = successor) :(parent->right = successor);
+         }
+     }
+     free (current);
+     return;
+ }
+
+ void findElement(char *str) 
+ {
+     struct PhB *temp = NULL;
+     int flag = 0, res = 0;
+     if (root == NULL) 
+	 {
+         printf("Phone book is empty!!\n");
+         return;
+     }
+     temp = root;
+     while (temp) 
+	 {
+         if ((res = strcasecmp(temp->name, str)) == 0) 
+	 	 {
+             printf("Name   : %s", str);
+             printf("Phone number : %s", temp->phNo);
+             printf("Email ID: %s", temp->email);
+             flag = 1;
+             break;
+         }
+         temp = (res > 0) ? temp->left : temp->right;
+     }
+     if (!flag)
+         printf("Search Element not found in Binary Search Tree\n");
+     return;
+ }
+
+ void inorderTraversal(struct PhB *myNode) 
+ {
+     if (myNode) 
+ 	 {
+         inorderTraversal(myNode->left);
+         printf("Name    : %s", myNode->name);
+         printf("Ph Number : %s", myNode->phNo);
+	  	 printf("\tEmail ID : %s", myNode->email);
+         dot();
+         inorderTraversal(myNode->right);
+     }
+     return;
+ }
+
+  int main() 
+  {
+     int ch;
+     char name[20], email[25];
+     char phNo[11];
+     while (1)
+   	 {
+   	 	 dot();
+         printf("\n1. Insertion\n2. Deletion\n");
+         printf("3. Searching\n4. Traversal\n");
+         printf("5. Exit\nEnter ur choice:");
+         scanf("%d", &ch);
+         dot();
+         getchar();
+         switch (ch) 
+	     {
+             case 1:
+                 printf("Name:");
+         	  	 fgets(name, 20, stdin);
+                 printf("Phone Number:");
+                 fgets(phNo, 10, stdin);
+                 printf("Email ID:");
+                 fgets(email, 25, stdin);
+                 insert(name, phNo, email);
+                 break;
+             case 2:
+                 printf("Enter the Name to delete:");
+                 fgets(name, 20, stdin);
+                 deleteNode(name);
+                 break;
+             case 3:
+                 printf("Enter the search name:");
+                 fgets(name, 20, stdin);
+                 findElement(name);
+                 break;
+             case 4:
+                 inorderTraversal(root);
+                 break;
+             case 5:
+                 exit(0);
+             default:
+                 printf("You have entered wrong option\n");
+                 break;
+         }
+     }
+     return 0;
+ }
